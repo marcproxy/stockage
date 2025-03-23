@@ -2,21 +2,21 @@
 // functions.php - Fonctions utilitaires pour l'application avec mysqli
 
 // Fonction pour récupérer les statistiques principales
-function getStats($mysqli) {
+function getStats($link_stockage) {
     $stats = [];
     
     // Compter le nombre total de références
-    $result = $mysqli->query("SELECT COUNT(*) as total FROM produits");
+    $result = $link_stockage->query("SELECT COUNT(*) as total FROM produits");
     $row = $result->fetch_assoc();
     $stats['total_references'] = $row['total'];
     
     // Compter le nombre d'armoires actives
-    $result = $mysqli->query("SELECT COUNT(*) as total FROM armoires");
+    $result = $link_stockage->query("SELECT COUNT(*) as total FROM armoires");
     $row = $result->fetch_assoc();
     $stats['total_armoires'] = $row['total'];
     
     // Compter le nombre de produits en alerte
-    $result = $mysqli->query("
+    $result = $link_stockage->query("
         SELECT COUNT(*) as total FROM inventaire i 
         JOIN produits p ON i.id_produit = p.id_produit 
         WHERE i.quantite <= p.seuil_alerte
@@ -27,7 +27,7 @@ function getStats($mysqli) {
     // Compter le nombre de mouvements ce mois
     $currentMonth = date('m');
     $currentYear = date('Y');
-    $stmt = $mysqli->prepare("
+    $stmt = $link_stockage->prepare("
         SELECT COUNT(*) as total FROM mouvements 
         WHERE MONTH(date_mouvement) = ? AND YEAR(date_mouvement) = ?
     ");
@@ -41,11 +41,11 @@ function getStats($mysqli) {
 }
 
 // Fonction pour récupérer les armoires avec leur taux d'occupation
-function getArmoires($mysqli) {
+function getArmoires($link_stockage) {
     $armoires = [];
     
     // Récupérer les informations de base sur les armoires
-    $result = $mysqli->query("
+    $result = $link_stockage->query("
         SELECT id_armoire, nom_armoire, description 
         FROM armoires 
         ORDER BY nom_armoire
@@ -53,7 +53,7 @@ function getArmoires($mysqli) {
     
     while ($armoire = $result->fetch_assoc()) {
         // Compter le nombre de références stockées dans cette armoire
-        $stmt = $mysqli->prepare("
+        $stmt = $link_stockage->prepare("
             SELECT COUNT(DISTINCT i.id_produit) as total_produits
             FROM inventaire i
             JOIN sections s ON i.id_section = s.id_section
@@ -80,7 +80,7 @@ function getArmoires($mysqli) {
 }
 
 // Fonction pour récupérer les produits récents ou recherchés
-function getProduits($mysqli, $search = '', $limit = 10, $armoireId = null) {
+function getProduits($link_stockage, $search = '', $limit = 10, $armoireId = null) {
     $produits = [];
     
     $sql = "
@@ -142,7 +142,7 @@ function getProduits($mysqli, $search = '', $limit = 10, $armoireId = null) {
     $types .= "i";
     
     // Préparer et exécuter la requête
-    $stmt = $mysqli->prepare($sql);
+    $stmt = $link_stockage->prepare($sql);
     
     if (!empty($params)) {
         // Convertir l'array de paramètres en variables individuelles pour bind_param
@@ -164,10 +164,10 @@ function getProduits($mysqli, $search = '', $limit = 10, $armoireId = null) {
 }
 
 // Fonction pour obtenir les derniers mouvements
-function getMouvementsRecents($mysqli, $limit = 5) {
+function getMouvementsRecents($link_stockage, $limit = 5) {
     $mouvements = [];
     
-    $stmt = $mysqli->prepare("
+    $stmt = $link_stockage->prepare("
         SELECT 
             m.id_mouvement,
             m.type_mouvement,
@@ -216,10 +216,10 @@ function getMouvementsRecents($mysqli, $limit = 5) {
 }
 
 // Fonction pour récupérer les alertes actives
-function getAlertesActives($mysqli) {
+function getAlertesActives($link_stockage) {
     $alertes = [];
     
-    $result = $mysqli->query("
+    $result = $link_stockage->query("
         SELECT 
             a.*,
             p.reference,
