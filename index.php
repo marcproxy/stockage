@@ -3,6 +3,9 @@
 require_once './src/components/current/db_connect.php';
 require_once './src/api/functions.php'; // Ajustez le chemin selon votre structure
 
+// Définir la page active pour le menu
+$page_active = 'dashboard';
+
 // Récupérer les statistiques
 $stats = getStats($link_stockage);
 
@@ -27,42 +30,8 @@ $alertes = getAlertesActives($link_stockage);
     <link rel="stylesheet" href="./css/index.css">
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <a href="index.php" class="logo">AJI<span>Stock</span></a>
-        <ul class="sidebar-menu">
-            <li><a href="<?= BASE_URL ?>/index.php" class="active"><span class="icon">📊</span> Tableau de bord</a></li>
-            <li><a href="<?= BASE_URL ?>/templates/inventory/inventory.php"><span class="icon">📦</span> Inventaire</a></li>
-            <li><a href="mouvements.php"><span class="icon">🔄</span> Mouvements</a></li>
-            <li><a href="armoires.php"><span class="icon">🏢</span> Armoires</a></li>
-            <li><a href="sections.php"><span class="icon">📊</span> Sections</a></li>
-            <li><a href="<?= BASE_URL ?>/templates/reservations/reservations.php" class="active"><span class="icon">🔖</span> Réservations</a></li>
-            <li><a href="fournisseurs.php"><span class="icon">👥</span> Fournisseurs</a></li>
-            <li><a href="commandes.php"><span class="icon">🛒</span> Commandes</a></li>
-            <li><a href="rapports.php"><span class="icon">📝</span> Rapports</a></li>
-            <li><a href="alertes.php"><span class="icon">⚠️</span> Alertes</a></li>
-            <li><a href="recherche.php"><span class="icon">🔍</span> Recherche avancée</a></li>
-            <li><a href="parametres.php"><span class="icon">⚙️</span> Paramètres</a></li>
-        </ul>
-    </div>
-
-    <!-- Header -->
-    <header>
-        <div class="main-nav">
-            <a href="index.php" class="active">Tableau de bord</a>
-            <a href="inventory">Inventaire</a>
-            <a href="fournisseurs.php">Fournisseurs</a>
-            <a href="rapports.php">Rapports</a>
-            <a href="parametres.php">Paramètres</a>
-        </div>
-        <div class="user-info">
-            <div class="user-avatar">MM</div>
-            <span>Marc MARTIN</span>
-            <div class="notification-icon">🔔
-                <span class="notification-count"><?php echo count($alertes); ?></span>
-            </div>
-        </div>
-    </header>
+    <?php include_once './src/components/current/sidebar.php'; ?>
+ <?php include_once './src/components/current/header.php'; ?>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -328,6 +297,7 @@ $alertes = getAlertesActives($link_stockage);
     <div class="menu-toggle">☰</div>
 
     <script src="./src/script/index/index.js">
+        <script src="./src/script/index/navigation.js">
     
     </script>
 </body>

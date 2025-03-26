@@ -16,6 +16,3 @@ if ($link_stockage->connect_error) {
 
 // Set encoding
 $link_stockage->set_charset("utf8mb4");
-
-// Define constants
-define('BASE_URL', '/stockage');  // Chemin de base du site

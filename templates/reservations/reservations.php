@@ -1,8 +1,15 @@
 <?php
-// reservations.php - Page de gestion des réservations
-require_once '../../src/components/current/db_connect.php';
-require_once '../../src/api/functions.php';
-require_once '../../src/api/reservations-functions.php';
+
+// Inclure le fichier de configuration
+require_once '../../src/components/current/config.php';
+
+// Inclure les fichiers de connexion et fonctions
+require_once COMPONENTS_PATH . '/db_connect.php';
+require_once API_PATH . '/functions.php';
+require_once API_PATH . '/reservations-functions.php';
+
+// Définir la page active pour le menu (correction de l'opérateur d'affectation)
+$page_active = 'reservations';
 
 // Récupération des paramètres de filtrage et pagination
 $statut = isset($_GET['statut']) ? $_GET['statut'] : '';
@@ -48,7 +55,7 @@ $produits = getProduits($link_stockage, '', 0);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Réservations - AJI-STOCK</title>
-    <link rel="stylesheet" href="../../css/index.css">
+    <link rel="stylesheet" href="<?= HOME_BASE_URL ?>/css/index.css">
     <style>
         .reservation-status {
             display: inline-block;
@@ -184,42 +191,8 @@ $produits = getProduits($link_stockage, '', 0);
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <a href="index.php" class="logo">AJI<span>Stock</span></a>
-        <ul class="sidebar-menu">
-        <li><a href="<?= BASE_URL ?>/index.php" class="active"><span class="icon">📊</span> Tableau de bord</a></li>
-            <li><a href="<?= BASE_URL ?>/templates/inventory/inventory.php"><span class="icon">📦</span> Inventaire</a></li>
-            <li><a href="mouvements.php"><span class="icon">🔄</span> Mouvements</a></li>
-            <li><a href="armoires.php"><span class="icon">🏢</span> Armoires</a></li>
-            <li><a href="sections.php"><span class="icon">📊</span> Sections</a></li>
-            <li><a href="<?= BASE_URL ?>/templates/reservations/reservations.php" class="active"><span class="icon">🔖</span> Réservations</a></li>
-            <li><a href="fournisseurs.php"><span class="icon">👥</span> Fournisseurs</a></li>
-            <li><a href="commandes.php"><span class="icon">🛒</span> Commandes</a></li>
-            <li><a href="rapports.php"><span class="icon">📝</span> Rapports</a></li>
-            <li><a href="alertes.php"><span class="icon">⚠️</span> Alertes</a></li>
-            <li><a href="recherche.php"><span class="icon">🔍</span> Recherche avancée</a></li>
-            <li><a href="parametres.php"><span class="icon">⚙️</span> Paramètres</a></li>
-        </ul>
-    </div>
-
-    <!-- Header -->
-    <header>
-        <div class="main-nav">
-            <a href="index.php">Tableau de bord</a>
-            <a href="inventaire.php">Inventaire</a>
-            <a href="reservations.php" class="active">Réservations</a>
-            <a href="rapports.php">Rapports</a>
-            <a href="parametres.php">Paramètres</a>
-        </div>
-        <div class="user-info">
-            <div class="user-avatar">MM</div>
-            <span>Marc MARTIN</span>
-            <div class="notification-icon">🔔
-                <span class="notification-count"><?php echo count(getAlertesActives($link_stockage)); ?></span>
-            </div>
-        </div>
-    </header>
+<?php include COMPONENTS_PATH. '/sidebar.php'; ?>
+<?php include COMPONENTS_PATH .'/header.php'; ?>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -228,7 +201,7 @@ $produits = getProduits($link_stockage, '', 0);
         </div>
         
         <div class="actions-container">
-            <a href="./templates/nouvelle-reservation.php" class="btn btn-success">+ Nouvelle réservation</a>
+            <a href="./new-reservation.php" class="btn btn-success">+ Nouvelle réservation</a>
             <a href="mes-reservations.php" class="btn btn-outline">Mes réservations</a>
             <a href="export_reservations.php" class="btn btn-outline">Exporter <span class="icon">↓</span></a>
         </div>

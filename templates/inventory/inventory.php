@@ -1,8 +1,15 @@
 <?php
 // inventory - Page de gestion de l'inventaire
-require_once '../../src/components/current/db_connect.php';
-require_once '../../src/api/inventory-functions.php';
 
+// Inclure le fichier de configuration
+require_once '../../src/components/current/config.php';
+
+// Inclure les fichiers de connexion et fonctions
+require_once COMPONENTS_PATH . '/db_connect.php';
+require_once API_PATH . '/inventory-functions.php';
+
+// Définir la page active pour le menu (correction de l'opérateur d'affectation)
+$page_active = 'inventory';
 
 // Définir les filtres par défaut
 $filtre_armoire = isset($_GET['armoire']) ? intval($_GET['armoire']) : 0;
@@ -26,6 +33,9 @@ $offset = ($page - 1) * $produits_par_page;
 // Récupérer les produits avec pagination et filtres
 $produits = getProduitsAvecFiltres($link_stockage, $filtre_armoire, $filtre_categorie, $filtre_statut, $recherche, $produits_par_page, $offset);
 
+// Récupérer les alertes actives (nécessaire pour le header)
+$alertes = getAlertesActives($link_stockage);
+
 // Définir les options de statut pour le filtre
 $statuts = [
     'tous' => 'Tous les statuts',
@@ -42,174 +52,12 @@ $statuts = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventaire - AJI-STOCK</title>
-    <link rel="stylesheet" href="../../css/index.css">
-    <style>
-        .filters-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-        
-        .filter-group {
-            display: flex;
-            align-items: center;
-        }
-        
-        .filter-label {
-            margin-right: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #555;
-        }
-        
-        .filter-select {
-            padding: 6px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: white;
-            min-width: 150px;
-        }
-        
-        .clear-filters {
-            margin-left: auto;
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        
-        .pagination-link {
-            padding: 5px 10px;
-            margin: 0 3px;
-            border-radius: 4px;
-            text-decoration: none;
-            color: var(--dark-color);
-            border: 1px solid #ddd;
-            background-color: white;
-        }
-        
-        .pagination-link.active {
-            background-color: var(--secondary-color);
-            color: white;
-            border-color: var(--secondary-color);
-        }
-        
-        .pagination-link:hover:not(.active) {
-            background-color: #f5f5f5;
-        }
-        
-        .inventory-badges {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .inventory-badge {
-            padding: 10px 15px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            background-color: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .inventory-badge .icon {
-            margin-right: 8px;
-            font-size: 1.2rem;
-        }
-        
-        .inventory-badge .number {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-right: 5px;
-        }
-        
-        .stock-warning {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        
-        .stock-ok {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .stock-critical {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        
-        .export-btn {
-            margin-left: 15px;
-        }
-        
-        .bulk-actions {
-            margin-top: 15px;
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            border: 1px dashed #ddd;
-        }
-        
-        .bulk-title {
-            font-weight: 600;
-            margin-right: 15px;
-        }
-        
-        .checkable .data-table td:first-child {
-            width: 40px;
-            text-align: center;
-        }
-        
-        .select-all-container {
-            margin-bottom: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="<?= CSS_PATH ?>/index.css">
+    <link rel="stylesheet" href="<?= CSS_PATH ?>/inventory.css">
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <a href="index.php" class="logo">AJI<span>Stock</span></a>
-        <ul class="sidebar-menu">
-        <li><a href="<?= BASE_URL ?>/index.php" class="active"><span class="icon">📊</span> Tableau de bord</a></li>
-            <li><a href="<?= BASE_URL ?>/templates/inventory/inventory.php"><span class="icon">📦</span> Inventaire</a></li>
-            <li><a href="mouvements.php"><span class="icon">🔄</span> Mouvements</a></li>
-            <li><a href="armoires.php"><span class="icon">🏢</span> Armoires</a></li>
-            <li><a href="sections.php"><span class="icon">📊</span> Sections</a></li>
-            <li><a href="<?= BASE_URL ?>/templates/reservations/reservations.php" class="active"><span class="icon">🔖</span> Réservations</a></li>
-            <li><a href="fournisseurs.php"><span class="icon">👥</span> Fournisseurs</a></li>
-            <li><a href="commandes.php"><span class="icon">🛒</span> Commandes</a></li>
-            <li><a href="rapports.php"><span class="icon">📝</span> Rapports</a></li>
-            <li><a href="alertes.php"><span class="icon">⚠️</span> Alertes</a></li>
-            <li><a href="recherche.php"><span class="icon">🔍</span> Recherche avancée</a></li>
-            <li><a href="parametres.php"><span class="icon">⚙️</span> Paramètres</a></li>
-        </ul>
-    </div>
-
-    <!-- Header -->
-    <header>
-        <div class="main-nav">
-            <a href="index.php">Tableau de bord</a>
-            <a href="inventory" class="active">Inventaire</a>
-            <a href="fournisseurs.php">Fournisseurs</a>
-            <a href="rapports.php">Rapports</a>
-            <a href="parametres.php">Paramètres</a>
-        </div>
-        <div class="user-info">
-            <div class="user-avatar">MM</div>
-            <span>Marc MARTIN</span>
-            <div class="notification-icon">🔔
-                <span class="notification-count"><?php echo count(getAlertesActives($link_stockage)); ?></span>
-            </div>
-        </div>
-    </header>
-
+  <?php include COMPONENTS_PATH. '/sidebar.php'; ?>
+  <?php include COMPONENTS_PATH .'/header.php'; ?>
     <!-- Main Content -->
     <div class="main-content">
         <div class="title-container">
@@ -471,104 +319,8 @@ $statuts = [
     <!-- Mobile menu toggle -->
     <div class="menu-toggle">☰</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Mobile menu toggle
-            const menuToggle = document.querySelector('.menu-toggle');
-            const sidebar = document.querySelector('.sidebar');
-            
-            menuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('show');
-            });
-            
-            // Close sidebar when clicking outside on mobile
-            document.addEventListener('click', function(e) {
-                if (window.innerWidth <= 992 && 
-                    sidebar.classList.contains('show') && 
-                    !sidebar.contains(e.target) && 
-                    e.target !== menuToggle) {
-                    sidebar.classList.remove('show');
-                }
-            });
-            
-            // Filtres
-            const filterForm = document.getElementById('filtersForm');
-            const filterSelects = filterForm.querySelectorAll('select');
-            
-            filterSelects.forEach(select => {
-                select.addEventListener('change', function() {
-                    filterForm.submit();
-                });
-            });
-            
-            // Sélection en masse
-            const selectAll = document.getElementById('selectAll');
-            const productCheckboxes = document.querySelectorAll('.product-checkbox');
-            const applyBulkButton = document.getElementById('applyBulkAction');
-            
-            if (selectAll) {
-                selectAll.addEventListener('change', function() {
-                    const isChecked = this.checked;
-                    
-                    productCheckboxes.forEach(checkbox => {
-                        checkbox.checked = isChecked;
-                    });
-                    
-                    updateBulkActionButton();
-                });
-            }
-            
-            if (productCheckboxes.length > 0) {
-                productCheckboxes.forEach(checkbox => {
-                    checkbox.addEventListener('change', function() {
-                        updateBulkActionButton();
-                        
-                        // Vérifier si toutes les cases sont cochées
-                        const allChecked = Array.from(productCheckboxes).every(c => c.checked);
-                        if (selectAll) {
-                            selectAll.checked = allChecked;
-                        }
-                    });
-                });
-            }
-            
-            function updateBulkActionButton() {
-                const anyChecked = Array.from(productCheckboxes).some(c => c.checked);
-                if (applyBulkButton) {
-                    applyBulkButton.disabled = !anyChecked;
-                }
-            }
-            
-            // Validation du formulaire d'actions groupées
-            const bulkForm = document.getElementById('bulkForm');
-            const bulkActionSelect = document.getElementById('bulk_action');
-            
-            if (bulkForm) {
-                bulkForm.addEventListener('submit', function(e) {
-                    const selectedAction = bulkActionSelect.value;
-                    const selectedProducts = Array.from(productCheckboxes).filter(c => c.checked);
-                    
-                    if (!selectedAction) {
-                        e.preventDefault();
-                        alert('Veuillez sélectionner une action à effectuer.');
-                        return false;
-                    }
-                    
-                    if (selectedProducts.length === 0) {
-                        e.preventDefault();
-                        alert('Veuillez sélectionner au moins un produit.');
-                        return false;
-                    }
-                    
-                    if (selectedAction === 'delete') {
-                        if (!confirm('Êtes-vous sûr de vouloir supprimer les produits sélectionnés ? Cette action est irréversible.')) {
-                            e.preventDefault();
-                            return false;
-                        }
-                    }
-                });
-            }
-        });
+    <script src="<?= JS_PATH ?>/inventory/inventory.js">
+   
     </script>
 </body>
 </html>
